@@ -33,25 +33,18 @@
 
   <main class="container">
     
-    <!-- Problema de Negócio (Compacto com Galeria) -->
+    <!-- Imagem Hero (Sóbria e Corporativa) -->
+    <section class="hero-section">
+      <div class="hero-image-wrapper">
+        <img src="./assets/images/mesa.png" alt="Contexto operacional dos materiais industriais: almoxarifado de sobressalentes MRO" class="hero-image" loading="lazy" />
+        <div class="hero-caption">Contexto operacional dos materiais industriais</div>
+      </div>
+    </section>
+
+    <!-- Problema de Negócio (Compacto) -->
     <section class="problem-section">
-      <div class="card problem-card-grid">
-        <div class="problem-text">
-          <strong>Problema de Negócio:</strong> Como priorizar de forma objetiva o abastecimento de milhares de itens sobressalentes, mitigando riscos de paradas não planejadas de produção sem causar excesso de capital de giro imobilizado em estoque?
-          <p style="margin-top: 0.55rem; font-size: 0.75rem; color: var(--text-muted);">
-            O painel cruza o impacto técnico (Engenharia) e financeiro (Custo Parada) com a vulnerabilidade de suprimentos (Lead Time e Cobertura) para gerar recomendações sob medida de compra, monitoramento e controle.
-          </p>
-        </div>
-        <div class="problem-gallery">
-          <div class="gallery-main">
-            <img id="gallery-img" src="./img/mesa.png" alt="Almoxarifado Técnico" />
-          </div>
-          <div class="gallery-thumbs">
-            <img class="active" src="./img/mesa.png" onclick="setGalleryImage(this, './img/mesa.png')" alt="Mesa de Trabalho" />
-            <img src="./img/mesa2.png" onclick="setGalleryImage(this, './img/mesa2.png')" alt="Mesa de Controle" />
-            <img src="./img/mesa-tecnico.png" onclick="setGalleryImage(this, './img/mesa-tecnico.png')" alt="Técnico MRO" />
-          </div>
-        </div>
+      <div class="card problem-card">
+        <strong>Problema de Negócio:</strong> Como priorizar de forma objetiva o abastecimento de milhares de itens sobressalentes, mitigando riscos de paradas não planejadas de produção sem causar excesso de capital de giro imobilizado em estoque?
       </div>
     </section>
 
@@ -203,26 +196,33 @@
       <h3>Metodologia de Priorização</h3>
     </section>
     
-    <section class="methodology-grid">
-      <div class="card method-card">
-        <h5>1. Dados Sintéticos</h5>
-        <p>Mapeamento de 1000 materiais MRO de planta de fertilizantes, com distribuições plausíveis de lead time, demanda e custos.</p>
+    <section class="methodology-section-grid">
+      <div class="methodology-grid">
+        <div class="card method-card">
+          <h5>1. Dados Sintéticos</h5>
+          <p>Mapeamento de 1000 materiais MRO de planta de fertilizantes, com distribuições plausíveis de lead time, de custos e de consumo de estoque.</p>
+        </div>
+        <div class="card method-card">
+          <h5>2. Normalização</h5>
+          <p>Ajuste linear das variáveis explicativas na escala intervalar [0, 1] via MinMax, garantindo neutralidade de grandezas físicas.</p>
+        </div>
+        <div class="card method-card">
+          <h5>3. Score Ponderado</h5>
+          <p>Fórmula analítica ponderando: Engenharia (35%), Custo de Parada (25%), Lead Time (20%), Risco Substituição (10%) e Risco Stockout (10%).</p>
+        </div>
+        <div class="card method-card">
+          <h5>4. Classificação ABC</h5>
+          <p>Estratificação objetiva baseada no score calculado: Classe A representa o top 15%, Classe B os próximos 30% e Classe C os demais.</p>
+        </div>
+        <div class="card method-card" style="grid-column: span 2;">
+          <h5>5. Ações de Inventário</h5>
+          <p>Regras lógicas que cruzam cobertura, ponto de pedido mínimo e risco para sugerir planos de ação sob medida e viáveis.</p>
+        </div>
       </div>
-      <div class="card method-card">
-        <h5>2. Normalização</h5>
-        <p>Ajuste linear das variáveis explicativas na escala intervalar [0, 1] via MinMax, garantindo neutralidade de grandezas físicas.</p>
-      </div>
-      <div class="card method-card">
-        <h5>3. Score Ponderado</h5>
-        <p>Fórmula analítica ponderando: Engenharia (35%), Custo de Parada (25%), Lead Time (20%), Risco Substituição (10%) e Risco Stockout (10%).</p>
-      </div>
-      <div class="card method-card">
-        <h5>4. Classificação ABC</h5>
-        <p>Estratificação objetiva baseada no score calculado: Classe A representa o top 15%, Classe B os próximos 30% e Classe C os demais.</p>
-      </div>
-      <div class="card method-card">
-        <h5>5. Ações de Inventário</h5>
-        <p>Regras lógicas que cruzam cobertura, ponto de pedido mínimo e risco para sugerir planos de ação sob medida e viáveis.</p>
+      
+      <div class="card support-image-card">
+        <img src="./assets/images/mesa-tecnico.png" alt="Análise e priorização orientadas por dados: mesa de calibração de sensores sobressalentes" class="support-image" loading="lazy" />
+        <div class="support-caption">Análise e priorização orientadas por dados</div>
       </div>
     </section>
 

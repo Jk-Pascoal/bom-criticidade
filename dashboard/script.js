@@ -529,20 +529,3 @@ function buildKpis(data) {
     );
   }
 })();
-
-// Navegação da Galeria de Imagens
-function setGalleryImage(thumb, src) {
-  const main = document.getElementById("gallery-img");
-  if (main) {
-    main.style.opacity = 0;
-    setTimeout(() => {
-      main.src = src;
-      main.style.opacity = 1;
-    }, 150);
-  }
-  
-  // Atualiza classe ativa nos thumbnails
-  const thumbs = thumb.parentElement.querySelectorAll("img");
-  thumbs.forEach(t => t.classList.remove("active"));
-  thumb.classList.add("active");
-}
