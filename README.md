@@ -1,141 +1,133 @@
-# ⚡ BOM Criticidade — Priorização Analítica de Materiais Industriais
+# BOM Criticidade — Priorização Analítica de Materiais Industriais
 
 > **Sistema interpretável para classificar materiais críticos considerando lead time, custo de parada, consumo anual, risco de substituição e cobertura de estoque.**
 
 ---
 
-## 🎯 Problema de Negócio
+## Problema de Negócio
 
-Como priorizar materiais industriais em catálogos extensos, reduzindo a subjetividade e apoiando decisões estratégicas de estoque, manutenção, suprimentos e engenharia? 
+Como priorizar materiais industriais em catálogos extensos, reduzindo subjetividade e apoiando decisões de estoque, manutenção, suprimentos e engenharia?
 
-Em ambientes industriais de grande porte (como plantas petroquímicas ou de fertilizantes), a indisponibilidade de um item sobressalente crítico pode paralisar uma linha de produção inteira, causando prejuízos financeiros massivos por hora de inatividade. O desafio reside em identificar de forma rápida, objetiva e escalável quais materiais merecem atenção prioritária e quais possuem estoques sobredimensionados, mitigando riscos sem inflar o capital de giro.
-
----
-
-## 📊 Sumário Executivo
-
-Este projeto cria um **score interpretável de criticidade** para apoiar a tomada de decisão em supply chain industrial. O algoritmo consolida e pondera diferentes dimensões operacionais, logísticas e financeiras. O foco principal é mapear materiais que combinam alto impacto técnico de manutenção com alta vulnerabilidade de abastecimento (longo tempo de recebimento ou estoques baixos). Com isso, gestores conseguem focar esforços de contratação, automatizar a sugestão de compras preventivas e otimizar recursos operacionais.
+Em operações industriais de capital intensivo (como plantas de fertilizantes), a indisponibilidade de um item sobressalente vital pode paralisar linhas de produção inteiras, gerando perdas operacionais expressivas por hora. Esta solução desenvolve um modelo de decisão estruturado para classificar e priorizar itens de estoque MRO (Manutenção, Reparo e Operação), equilibrando riscos de paradas não planejadas e custos de capital imobilizado.
 
 ---
 
-## 📌 Objetivos
+## Sumário Executivo
 
-1. **Classificar materiais** em faixas claras de criticidade operacional.
-2. **Criar um score interpretável** entre 0.00 e 1.00 para permitir comparações objetivas.
-3. **Apoiar decisões de estoque de segurança**, calculando dinamicamente o ponto de pedido.
-4. **Identificar itens prioritários** para compras e contratos de fornecimento preventivos.
-5. **Evidenciar itens de baixo giro** ou sobredimensionados para redução de excesso de estoque.
-6. **Gerar um dashboard executivo interativo** em tempo real para análises rápidas de risco.
+O projeto propõe um **score de criticidade interpretável** que pondera o impacto operacional técnico (engenharia), perdas financeiras (custo de parada), tempo de ressuprimento (lead time), facilidade de substituição e risco de desabastecimento. A partir dessa pontuação, o painel executivo estratifica os itens nas classes A, B e C e gera planos de ação para direcionar esforços de compra, negociação de lead times, desenvolvimento de fornecedores ou redução de overstock.
 
 ---
 
-## 💾 Dados Utilizados
+## Objetivos do Projeto
+
+1. **Classificar materiais** por criticidade com base em parâmetros quantitativos.
+2. **Criar um score interpretável** entre 0.00 e 1.00.
+3. **Apoiar decisões de estoque de segurança**, calculando o estoque mínimo.
+4. **Identificar itens em risco de ruptura**, permitindo compras proativas.
+5. **Reduzir capital de giro**, sinalizando excessos de estoque em itens Classe C.
+6. **Gerar um painel executivo sóbrio** para controle gerencial rápido.
+
+---
+
+## Dados Utilizados
 
 > [!IMPORTANT]
-> Este projeto utiliza dados sintéticos gerados para simular um cenário industrial realista. Nenhum dado confidencial de empresa foi utilizado.
+> Este projeto utiliza dados sintéticos gerados para simular um cenário industrial realista de uma planta de fertilizantes. Nenhum dado confidencial corporativo foi utilizado.
 
-As variáveis principais do projeto, mapeadas e processadas pelo pipeline, são:
-
-*   `material_id`: Identificador exclusivo do item de estoque.
-*   `category`: Categoria ou grupo do item (ex: `MP` para Matéria-prima, `IP` para Insumo de processo, `SB` para Sobressalentes).
-*   `supplier`: Identificador ou nome do fornecedor (padrão `N/A`).
-*   `eng_crit`: Criticidade de Engenharia (avaliação técnica de 1 a 5 dada pela equipe de manutenção).
-*   `lead_time_days`: Lead time de fornecimento físico do item (em dias).
-*   `unit_cost`: Custo de aquisição unitário do item (em R$).
-*   `stock_qty`: Saldo físico atual em estoque.
-*   `daily_consumption`: Taxa de consumo médio diário do material.
-*   `coverage_days`: Dias de cobertura do estoque atual (estoque atual dividido pelo consumo diário, limitado a 180 dias).
-*   `annual_value`: Consumo anual valorizado (custo unitário multiplicado pelo consumo anual estimado).
-*   `score`: Score ponderado final de criticidade (intervalo entre 0.00 e 1.00).
-*   `risk_flag`: Flag de risco binário (1 se a cobertura de estoque for menor que o lead time de entrega, 0 caso contrário).
-*   `risk_score`: Score de risco ajustado (`score * risk_flag`), evidenciando itens urgentes.
-*   `abc_class`: Classificação financeira clássica de Pareto (Classe A: 80% do custo acumulado, B: 15%, C: 5%).
-*   `xyz_class`: Classificação de variabilidade da demanda baseada em coeficiente de variação.
-*   `suggest_qty`: Quantidade de compra sugerida com base no ponto de pedido dinâmico.
-
----
-
-## 🤖 Metodologia
-
-O pipeline de dados opera em etapas sequenciais e integradas:
-
-```mermaid
-graph TD
-    A[Geração de Dados Sintéticos: src/generate_data.py] --> B[Leitura do CSV bruto e Auto-mapeamento de Colunas]
-    B --> C[Normalização MinMax das Variáveis Explicativas]
-    C --> D[Cálculo do Score de Criticidade Ponderado]
-    D --> E[Classificação ABC/XYZ e Análise de Estoque de Segurança]
-    E --> F[Geração dos Dados Finais: data/processed/criticidade.csv]
-    F --> G[Visualização Dinâmica no Dashboard: dashboard/index.html]
-```
-
-1.  **Geração dos Dados:** O script `generate_data.py` gera uma lista realista de 400 itens de BOM com diferentes perfis de comportamento por categoria de material.
-2.  **Mapeamento e Tratamento:** O script `etl.py` normaliza nomenclaturas e infere tipos de dados, contornando variações regionais (como separadores de milhar e decimal).
-3.  **Normalização:** As variáveis numéricas de engenharia, lead time e custo são normalizadas na escala de 0 a 1 por normalização MinMax para evitar distorções de escala.
-4.  **Cálculo do Score:** Aplicação de pesos lineares sobre as variáveis normalizadas.
-5.  **Cálculo Logístico:** Cálculo dinâmico do estoque de segurança baseado na variabilidade da demanda, ponto de pedido e quantidade sugerida de compra.
-6.  **Geração do CSV Processado:** Exportação ordenada por prioridade e criticidade de risco.
-7.  **Construção do Dashboard:** Painel web construído para consumir o arquivo processado de forma reativa.
+As variáveis que compõem o banco de dados processado são:
+*   `material_id`: Identificador alfanumérico único do item.
+*   `material_name`: Descrição técnica realística do material (ex: "Rolamento SKF 6312-C3").
+*   `category`: Especialidade do material (ex: `Mecanico`, `Vedacao`, `Automacao`).
+*   `equipment_family`: Família do equipamento associado (ex: `Bombas`, `Motores`, `Valvulas`).
+*   `supplier_name`: Nome do fornecedor principal (ex: `Fornecedor Nacional A`).
+*   `origin_type`: Tipo de origem geográfica/comercial (`Regional`, `Nacional`, `OEM`, `Importado`).
+*   `lead_time_days`: Lead time de fornecimento em dias.
+*   `unit_cost`: Custo de aquisição unitário do material (em R$).
+*   `annual_consumption`: Quantidade anual consumida (`monthly_demand_avg * 12`).
+*   `monthly_demand_avg`: Demanda média mensal do item.
+*   `demand_std`: Desvio padrão da demanda mensal.
+*   `stock_quantity`: Saldo físico atual em estoque.
+*   `minimum_stock`: Estoque mínimo dinâmico calculado.
+*   `coverage_days`: Cobertura em dias do estoque atual.
+*   `downtime_cost_hour`: Custo de parada de produção por hora do equipamento associado.
+*   `substitution_risk`: Dificuldade de encontrar substitutos ou fornecedores locais (1 a 5).
+*   `criticality_engineering`: Criticidade física do item dada pela manutenção (1 a 5).
+*   `criticality_score`: Score ponderado final de criticidade [0.00, 1.00].
+*   `abc_class`: Classe de prioridade baseada no score (A: Top 15%, B: próximos 30%, C: restante 55%).
+*   `stockout_risk`: Severidade de risco de stockout com base na cobertura e lead time [0.00, 1.00].
+*   `annual_consumption_value`: Valor financeiro anualizado de consumo (R$).
+*   `recommended_action`: Plano de ação sugerido (ex: "Reabastecer agora", "Reduzir excesso de estoque").
 
 ---
 
-## 📐 Fórmula do Score
+## Metodologia de Cálculo e Normalização
 
-O score de criticidade final de cada item de estoque é calculado pela seguinte combinação linear ponderada das variáveis normalizadas (escala de 0.00 a 1.00):
+1.  **Geração dos Dados (`src/generate_data.py`):** Simulação estatística de 1.000 materiais MRO seguindo perfis reais de custo e comportamento logístico.
+2.  **Limpeza e Ajuste (`src/etl.py`):** Ingestão do CSV bruto, conversão de formatos monetários e tratamento de nulos.
+3.  **Cálculo Logístico:** Cálculo dinâmico da cobertura de estoque, do estoque mínimo (segurança) e do risco de stockout.
+4.  **Normalização MinMax:** Variáveis explicativas de unidades distintas são normalizadas na escala de 0 a 1 para garantir a neutralidade matemática do modelo.
+5.  **Score Multicritério:** Aplicação da fórmula ponderada de criticidade.
+6.  **Classificação ABC por Score:** O catálogo é ordenado pelo score de criticidade decrescente e fatiado nas proporções de 15% (A), 30% (B) e 55% (C).
+7.  **Determinação de Ações:** Regras de negócio de estoque que mapeiam riscos e geram planos recomendados.
 
-$$\text{Score} = 0.40 \times \text{EngCrit}_{\text{norm}} + 0.30 \times \text{LeadTime}_{\text{norm}} + 0.20 \times \text{UnitCost}_{\text{norm}} + 0.10 \times (1 - \text{Coverage}_{\text{norm}})$$
+---
 
-*   **Criticidade de Engenharia (40%):** Maior peso atribuído à criticidade técnica de produção, protegendo os equipamentos vitais da planta.
-*   **Lead Time de Fornecimento (30%):** Penaliza itens de difícil aquisição ou importados, que demoram mais para chegar.
-*   **Custo Unitário (20%):** Considera a dimensão financeira direta de compra do material.
-*   **Inverso da Cobertura de Estoque (10%):** Dá peso extra a itens que se encontram em níveis alarmantes de estoque frente ao consumo diário.
+## Fórmula do Score de Criticidade
+
+O score final é obtido por:
+
+$$\text{Score} = 0.35 \times \text{EngCrit}_{\text{norm}} + 0.25 \times \text{Downtime}_{\text{norm}} + 0.20 \times \text{LeadTime}_{\text{norm}} + 0.10 \times \text{SubRisk}_{\text{norm}} + 0.10 \times \text{StockoutRisk}$$
+
+*   **Criticidade de Engenharia (35%):** Gravidade técnica de falha da peça.
+*   **Custo de Parada de Planta (25%):** Impacto financeiro por hora de parada do equipamento.
+*   **Lead Time de Entrega (20%):** Lentidão de entrega física do fornecedor.
+*   **Risco de Substituição (10%):** Dificuldade logística ou comercial de achar alternativas locais.
+*   **Risco de Stockout (10%):** Risco de ficar sem estoque físico antes do recebimento do novo pedido.
 
 > [!NOTE]
-> Os pesos adotados no modelo refletem premissas de negócio gerais para a indústria MRO (Manutenção, Reparo e Operações). Esses parâmetros são completamente configuráveis e podem ser adaptados sob medida em sessões de alinhamento com especialistas da área.
+> Os pesos adotados no modelo constituem premissas de negócio gerais e devem ser calibrados com o corpo técnico e de suprimentos de cada unidade operacional.
 
 ---
 
-## 💡 Decisões que o Projeto Apoia
+## Decisões que o Projeto Apoia
 
-*   **Definição de Estoques de Segurança:** Ajuste dinâmico de níveis mínimos com base na classificação XYZ.
-*   **Gestão de Suprimentos:** Foco prioritário de aquisições em itens de alto risco.
-*   **Mitigação de Riscos logísticos:** Mapeamento de itens com lead time alto para contratos de fornecimento de longo prazo (MRO).
-*   **Negociação com Fornecedores:** Focar esforços de compras em itens críticos e caros (Classe A + Alta Criticidade).
-*   **Otimização de Capital de Giro:** Identificação de materiais Classe C com estoques sobredimensionados para cancelamento ou adiamento de novos pedidos.
-
----
-
-## 📊 Dashboard Executivo
-
-O painel visual contém 7 representações gráficas interativas em tempo real:
-
-1.  **Top 20 Materiais por Criticidade:** Gráfico de barras indicando os materiais com os maiores scores de criticidade ponderados.
-2.  **Distribuição de Scores:** Histograma que mapeia a quantidade de itens em faixas de score de 0.0 a 1.0, evidenciando o comportamento de cauda longa do inventário.
-3.  **Dispersão Lead Time × Custo Unitário:** Gráfico de bolhas correlacionando custo e tempo de entrega, onde o raio da bolha corresponde ao score de criticidade do item.
-4.  **Pareto ABC por Valor Anual:** Gráfico de barras e linha acumulada ilustrando a concentração financeira do catálogo.
-5.  **Contagem por Criticidade de Engenharia:** Distribuição quantitativa dos itens pelas avaliações técnicas (1 a 5).
-6.  **Risco de Stockout:** Gráfico de dispersão entre Cobertura de Estoque (eixo X) e Lead Time (eixo Y). Itens na zona vermelha (acima da linha tracejada $y=x$) estão em risco crítico de falta física antes da chegada de um novo pedido.
-7.  **Curva de Pareto de Criticidade:** Relação percentual acumulada de criticidade para mapear o impacto conjunto da planta.
-8.  **Tabela de Ações Recomendadas:** Lista interativa com pílulas visuais categorizadas em reabastecer agora, monitorar, rever lead time ou reduzir estoque.
+*   **Definição de Parâmetros de Abastecimento:** Calibração de níveis mínimos dinâmicos de segurança.
+*   **Negociação com Fornecedores:** Focar acordos de fornecimento (lead time reduzido) em itens de alto score.
+*   **Priorização de Compras:** Automação de solicitações de aquisição focadas na ação "Reabastecer agora".
+*   **Redução de Overstock:** Sinalização de itens Classe C com alta cobertura para escoamento, liberando capital de giro.
 
 ---
 
-## 🛠️ Stack Técnica
+## Dashboard Executivo
 
-*   **Linguagem & Processamento:** Python 3.10+ (Pandas, NumPy)
-*   **Front-end & Visualização:** HTML5, CSS3, JavaScript (PapaParse para ingestão de dados, Chart.js para renderização gráfica)
-*   **Arquitetura:** Ingestão de arquivos locais (CSV) de forma reativa no navegador.
+O painel visual contém 7 representações gráficas interativas e sóbrias:
+
+1.  **Distribuição ABC:** Divisão dos materiais pelas classes A, B e C.
+2.  **Histograma de Score:** Quantidade de itens distribuídos por faixas de score [0.0, 1.0].
+3.  **Top 15 Materiais Críticos:** Gráfico horizontal contendo os 15 maiores scores de criticidade.
+4.  **Lead Time × Cobertura de Estoque:** Gráfico de dispersão evidenciando os itens em risco iminente de desabastecimento (acima da linha tracejada $y=x$).
+5.  **Custo de Parada × Score:** Cruzamento do custo de hora inativa de ativo em relação ao score do material.
+6.  **Valor Anual Consumido por Categoria:** Custos totais anualizados agregados por especialidade de manutenção.
+7.  **Risco de Ruptura por Categoria:** Percentual de itens com risco ativo por especialidade.
+8.  **Tabela Executiva de Ações:** Tabela detalhada dos itens mais críticos contendo pílulas visuais de ações de controle (reabastecer, reduzir estoque, negociar lead time, monitorar, etc.).
 
 ---
 
-## 📂 Estrutura do Projeto
+## Stack Técnica
+
+*   **Linguagem & Processamento:** Python 3.10+ (com Pandas e NumPy).
+*   **Front-end & Visualização:** HTML5, CSS3, JavaScript puro (PapaParse para ingestão de dados locales, Chart.js para renderizações gráficas).
+
+---
+
+## Estrutura do Projeto
 
 ```text
 BOM-Criticidade/
 │
 ├── data/
-│   ├── raw/                  # Contém o arquivo gerado de dados brutos (bom.csv)
-│   └── processed/            # Contém o arquivo processado de criticidade (criticidade.csv)
+│   ├── raw/                  # Arquivo bruto gerado (bom.csv)
+│   └── processed/            # Arquivo processado de criticidade (criticidade.csv)
 │
 ├── src/
 │   ├── generate_data.py      # Script Python gerador de dados industriais simulados
@@ -143,8 +135,8 @@ BOM-Criticidade/
 │
 ├── dashboard/
 │   ├── index.html            # Interface web principal do painel analítico
-│   ├── styles.css            # Estilização de alto nível (tema escuro e grids responsivos)
-│   └── script.js             # Lógica de carga do CSV, cálculo de KPIs e inicialização do Chart.js
+│   ├── styles.css            # Estilização corporativa clara e compacta
+│   └── script.js             # Lógica de carga do CSV, KPIs e inicialização do Chart.js
 │
 ├── docs/                     # Pasta de deploy sincronizada para hospedagem estática (GitHub Pages)
 │   ├── data/processed/       # Cópia do CSV processado para o deploy
@@ -153,16 +145,16 @@ BOM-Criticidade/
 │   └── script.js
 │
 ├── requirements.txt          # Dependências Python mínimas para reprodutibilidade
-├── PORTFOLIO_CASE.md         # Documentação de portfólio executiva voltada a recrutadores
-├── DATA_DICTIONARY.md        # Dicionário de dados técnico com detalhamento de variáveis
+├── PORTFOLIO_CASE.md         # Estudo de caso executivo voltado a recrutadores
+├── DATA_DICTIONARY.md        # Dicionário técnico detalhado das variáveis do modelo
 └── README.md                 # Documento principal do repositório
 ```
 
 ---
 
-## 🔄 Reprodutibilidade (Como Executar)
+## Reprodutibilidade (Como Executar)
 
-Siga os passos abaixo para rodar o pipeline do zero e abrir o painel localmente:
+Siga as etapas abaixo para rodar o projeto localmente:
 
 1.  **Clone o repositório:**
     ```bash
@@ -170,62 +162,41 @@ Siga os passos abaixo para rodar o pipeline do zero e abrir o painel localmente:
     cd bom-criticidade
     ```
 
-2.  **Crie e ative um ambiente virtual:**
+2.  **Inicialize o ambiente virtual e instale as dependências:**
     ```bash
     # Windows
     python -m venv .venv
     .venv\Scripts\activate
+    pip install -r requirements.txt
 
     # Linux/MacOS
     python3 -m venv .venv
     source .venv/bin/activate
-    ```
-
-3.  **Instale as dependências:**
-    ```bash
     pip install -r requirements.txt
     ```
 
-4.  **Gere os dados simulados brutos:**
+3.  **Gere a base simulada de materiais:**
     ```bash
     python src/generate_data.py
-    # Confirme a criação de: data/raw/bom.csv (400 linhas)
     ```
 
-5.  **Execute o pipeline ETL:**
+4.  **Execute o pipeline ETL de modelagem:**
     ```bash
     python src/etl.py
-    # Confirme a criação de: data/processed/criticidade.csv
     ```
 
-6.  **Inicie o servidor HTTP local para abrir o painel:**
+5.  **Inicie o servidor local para abrir o painel executivo:**
     ```bash
     python -m http.server 8000
     ```
-
-7.  **Acesse o dashboard:**
-    Abra o seu navegador e navegue até: [http://localhost:8000/dashboard/](http://localhost:8000/dashboard/)
+    Abra no navegador o endereço: [http://localhost:8000/dashboard/](http://localhost:8000/dashboard/)
 
 ---
 
-## ⚠️ Limitações do Modelo
+## Limitações do Modelo
 
-*   **Dados Sintéticos:** Conforme mencionado, a base de dados é inteiramente fictícia. Não representa o estoque atual nem dados reais de produção de plantas operacionais reais.
-*   **Subjetividade Técnica:** A criticidade de engenharia (`eng_crit`) depende de input técnico que pode carregar viés ou subjetividade humana.
-*   **Falta de Modelos Confiabilistas:** O score é calculado estaticamente e não consome dados dinâmicos de quebras de equipamentos, tais como taxas de falhas históricas ou tempo médio entre falhas (MTBF).
-*   **Ponderações Fixas:** Os pesos atribuídos às dimensões do score são estáticos, necessitando de reavaliação conjunta para cada realidade operacional de planta.
-
----
-
-## 🔮 Próximas Fases
-
-*   Adicionar **histórico real de falhas** e confiabilidade para acoplamento dinâmico.
-*   Implementar **modelos preditivos** de ruptura de estoque (Machine Learning supervisionado).
-*   Permitir a **interação direta com os pesos** do score no painel, permitindo análises de cenários sob demanda.
-*   Construir um **simulador de estoque mínimo e máximo** com gráficos de dente de serra integrados para itens Classe A.
-
----
-
-## 📬 Contato
-
-**Jakson Pascoal** | [LinkedIn](https://linkedin.com/in/jakson-pascoal) | [GitHub](https://github.com/Jk-Pascoal)
+*   **Dados Sintéticos:** O dataset representa uma simulação estatística técnica e não expõe dados reais.
+*   **Subjetividade Técnica:** A nota técnica de engenharia de manutenção depende da avaliação do time técnico da unidade operacional.
+*   **Falta de Modelos Confiabilistas:** O score é baseado em variáveis estáticas e não consome dados dinâmicos de quebras históricas de ativos.
+*   **Ponderações Iniciais:** Os pesos definidos são arbitrários para o cenário MRO padrão e devem ser calibrados para cada planta real.
+*   **Não Substituição do Técnico:** O score serve apenas para triagem analítica, não substituindo o parecer de engenharia, manutenção e suprimentos.

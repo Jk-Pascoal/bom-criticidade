@@ -17,28 +17,24 @@ const fmtMoney = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 2,
 });
 
-// Helpers Utilitários
-const toNum = (v) => (v === null || v === undefined || v === "" ? 0 : Number(v));
-
-// Cores temáticas para Chart.js
+// Cores Executivas e Sóbrias para Chart.js
 const colors = {
-  blue: "rgba(56, 189, 248, 0.85)",
-  blueBorder: "rgba(56, 189, 248, 1)",
-  orange: "rgba(249, 115, 22, 0.85)",
-  orangeBorder: "rgba(249, 115, 22, 1)",
-  green: "rgba(16, 185, 129, 0.85)",
-  greenBorder: "rgba(16, 185, 129, 1)",
-  violet: "rgba(139, 92, 246, 0.85)",
-  violetBorder: "rgba(139, 92, 246, 1)",
-  red: "rgba(239, 68, 68, 0.85)",
-  redBorder: "rgba(239, 68, 68, 1)",
-  grid: "rgba(255, 255, 255, 0.08)",
-  text: "#94a3b8",
+  blueDark: "#1e3a8a",
+  blueMedium: "#3b82f6",
+  blueLight: "#93c5fd",
+  charcoal: "#334155",
+  grayMedium: "#64748b",
+  grayLight: "#cbd5e1",
+  green: "#16a34a",
+  red: "#dc2626",
+  grid: "#e2e8f0",
+  text: "#334155",
 };
 
 // Configuração global de fontes e grades do Chart.js
 Chart.defaults.color = colors.text;
 Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
+Chart.defaults.font.size = 11;
 
 function tryLoadCsv(url) {
   return new Promise((resolve, reject) => {
@@ -74,28 +70,27 @@ async function loadCsvWithFallback(paths) {
 }
 
 // -------------------------------------------------------------
-// FUNÇÕES DE CONSTRUÇÃO DE GRÁFICOS
+// GRÁFICOS DO DASHBOARD (7 GRÁFICOS ÚTEIS)
 // -------------------------------------------------------------
 
-// 1) Top 20 por Score
-function buildCritChart(data) {
-  const top20 = [...data].sort((a, b) => b.score - a.score).slice(0, 20);
-  const labels = top20.map((d) => d.material_id);
-  const scores = top20.map((d) => d.score);
+// 1. Distribuição ABC (Doughnut)
+function buildAbcChart(data) {
+  const counts = { A: 0, B: 0, C: 0 };
+  data.forEach((d) => {
+    if (counts[d.abc_class] !== undefined) counts[d.abc_class]++;
+  });
 
-  const ctx = document.getElementById("critChart").getContext("2d");
+  const ctx = document.getElementById("abcChart").getContext("2d");
   new Chart(ctx, {
-    type: "bar",
+    type: "doughnut",
     data: {
-      labels,
+      labels: ["Classe A (Crítico)", "Classe B (Importante)", "Classe C (Padrão)"],
       datasets: [
         {
-          label: "Score de Criticidade",
-          data: scores,
-          backgroundColor: colors.blue,
-          borderColor: colors.blueBorder,
+          data: [counts.A, counts.B, counts.C],
+          backgroundColor: [colors.blueDark, colors.grayMedium, colors.grayLight],
+          borderColor: "#ffffff",
           borderWidth: 1.5,
-          borderRadius: 4,
         },
       ],
     },
@@ -103,61 +98,38 @@ function buildCritChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `Score: ${fmt.format(ctx.raw)}`,
-            afterBody: (ctx) => {
-              const item = top20[ctx[0].dataIndex];
-              return [
-                `Classe ABC: ${item.abc_class}`,
-                `Lead Time: ${fmtInt.format(item.lead_time_days)} dias`,
-                `Cobertura: ${fmtInt.format(item.coverage_days)} dias`,
-                `Custo Unit.: ${fmtMoney.format(item.unit_cost)}`,
-              ];
-            }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, grid: { color: colors.grid } },
+        legend: { position: "bottom", labels: { boxWidth: 12 } },
       },
     },
   });
 }
 
-// 2) Histograma dos Scores
-function buildHistScore(data) {
-  const scores = data.map((d) => d.score).filter((s) => !isNaN(s));
-  const k = 10; // número de faixas
-  const min = 0;
-  const max = 1;
-  const step = (max - min) / k;
-  
+// 2. Histograma do Score (Bar)
+function buildHistChart(data) {
+  const scores = data.map((d) => d.criticality_score).filter((s) => !isNaN(s));
+  const k = 10;
   const counts = new Array(k).fill(0);
+  
   scores.forEach((s) => {
-    let idx = Math.floor((s - min) / step);
+    let idx = Math.floor(s * k);
     if (idx >= k) idx = k - 1;
     if (idx < 0) idx = 0;
     counts[idx]++;
   });
 
-  const labels = counts.map((_, i) => `${(min + i * step).toFixed(1)} - ${(min + (i + 1) * step).toFixed(1)}`);
+  const labels = counts.map((_, i) => `${(i / k).toFixed(1)}-${((i + 1) / k).toFixed(1)}`);
 
-  const ctx = document.getElementById("histScore").getContext("2d");
+  const ctx = document.getElementById("histChart").getContext("2d");
   new Chart(ctx, {
     type: "bar",
     data: {
       labels,
       datasets: [
         {
-          label: "Materiais nesta faixa",
+          label: "Itens",
           data: counts,
-          backgroundColor: colors.violet,
-          borderColor: colors.violetBorder,
-          borderWidth: 1.5,
-          borderRadius: 4,
+          backgroundColor: colors.charcoal,
+          borderRadius: 3,
         },
       ],
     },
@@ -166,237 +138,91 @@ function buildHistScore(data) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: colors.grid } },
+      },
+    },
+  });
+}
+
+// 3. Top 15 Materiais por Score (Horizontal Bar)
+function buildTop15Chart(data) {
+  const top15 = [...data].sort((a, b) => b.criticality_score - a.criticality_score).slice(0, 15);
+  
+  // Nomes curtos ou códigos para não quebrar o layout
+  const labels = top15.map((d) => d.material_id);
+  const values = top15.map((d) => d.criticality_score);
+
+  const ctx = document.getElementById("top15Chart").getContext("2d");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Score",
+          data: values,
+          backgroundColor: colors.blueDark,
+          borderRadius: 3,
+        },
+      ],
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (ctx) => `${ctx.raw} materiais`,
+            afterBody: (ctx) => {
+              const item = top15[ctx[0].dataIndex];
+              return `Material: ${item.material_name}\nClasse: ${item.abc_class}\nCobertura: ${item.coverage_days}d | LT: ${item.lead_time_days}d`;
+            }
           }
         }
       },
       scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, grid: { color: colors.grid } },
+        x: { beginAtZero: true, max: 1.0, grid: { color: colors.grid } },
+        y: { grid: { display: false } },
       },
     },
   });
 }
 
-// 3) Dispersão Lead Time vs Custo (Raio = Score)
-function buildBubbleLeadCusto(data) {
-  const pts = data.map((d) => ({
-    x: d.lead_time_days,
-    y: d.unit_cost,
-    r: 3 + 12 * d.score, // escala dinâmica de tamanho
-    label: d.material_id,
-    score: d.score,
-  }));
-
-  const ctx = document.getElementById("bubbleLeadCusto").getContext("2d");
-  new Chart(ctx, {
-    type: "bubble",
-    data: {
-      datasets: [
-        {
-          label: "Materiais",
-          data: pts,
-          backgroundColor: "rgba(249, 115, 22, 0.6)",
-          borderColor: colors.orangeBorder,
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const p = ctx.raw;
-              return [
-                `Material: ${p.label}`,
-                `Lead Time: ${fmtInt.format(p.x)} dias`,
-                `Custo Unit.: ${fmtMoney.format(p.y)}`,
-                `Score: ${fmt.format(p.score)}`,
-              ];
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          title: { display: true, text: "Lead time (dias)" },
-          grid: { color: colors.grid },
-        },
-        y: {
-          title: { display: true, text: "Custo unitário (R$)" },
-          beginAtZero: true,
-          grid: { color: colors.grid },
-        },
-      },
-    },
-  });
-}
-
-// 4) Pareto ABC por Valor Anual (Top 20)
-function buildParetoABC(data) {
-  const sorted = [...data].sort((a, b) => b.annual_value - a.annual_value);
-  const top20 = sorted.slice(0, 20);
-  const labels = top20.map((d) => d.material_id);
-  const values = top20.map((d) => d.annual_value);
-  
-  // Acumulado geral para linha percentual
-  const total = data.reduce((s, v) => s + v.annual_value, 0) || 1;
-  let acc = 0;
-  const cumPercentage = top20.map((d) => {
-    acc += d.annual_value;
-    return (acc / total) * 100;
-  });
-
-  const ctx = document.getElementById("paretoABC").getContext("2d");
-  new Chart(ctx, {
-    data: {
-      labels,
-      datasets: [
-        {
-          type: "bar",
-          label: "Custo Anual (R$)",
-          data: values,
-          yAxisID: "y",
-          backgroundColor: colors.blue,
-          borderColor: colors.blueBorder,
-          borderWidth: 1.5,
-          borderRadius: 4,
-        },
-        {
-          type: "line",
-          label: "Acumulado Global (%)",
-          data: cumPercentage,
-          yAxisID: "y1",
-          borderColor: colors.orangeBorder,
-          borderWidth: 2.5,
-          pointRadius: 3,
-          pointBackgroundColor: colors.orangeBorder,
-          tension: 0.2,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: "top" },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              if (ctx.datasetIndex === 0) return `Custo Anual: ${fmtMoney.format(ctx.raw)}`;
-              return `Acumulado: ${fmt.format(ctx.raw)}%`;
-            },
-          },
-        },
-      },
-      scales: {
-        y: {
-          type: "linear",
-          position: "left",
-          title: { display: true, text: "Custo Anual (R$)" },
-          grid: { color: colors.grid },
-        },
-        y1: {
-          type: "linear",
-          position: "right",
-          min: 0,
-          max: 100,
-          title: { display: true, text: "Acumulado (%)" },
-          grid: { drawOnChartArea: false },
-        },
-        x: { grid: { display: false } },
-      },
-    },
-  });
-}
-
-// 5) Distribuição por Criticidade de Engenharia
-function buildBarCritEng(data) {
-  const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  data.forEach((d) => {
-    const val = Math.round(d.eng_crit);
-    if (counts[val] !== undefined) counts[val]++;
-  });
-
-  const labels = ["1 (Muito Baixa)", "2 (Baixa)", "3 (Média)", "4 (Alta)", "5 (Crítica)"];
-  const values = [counts[1], counts[2], counts[3], counts[4], counts[5]];
-
-  const ctx = document.getElementById("barCritEng").getContext("2d");
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Quantidade de Itens",
-          data: values,
-          backgroundColor: colors.green,
-          borderColor: colors.greenBorder,
-          borderWidth: 1.5,
-          borderRadius: 4,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-      },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, grid: { color: colors.grid } },
-      },
-    },
-  });
-}
-
-// 6) Risco de Stockout (Lead Time x Cobertura)
-function buildScatterRisk(data) {
+// 4. Lead Time x Cobertura (Scatter com linha y=x)
+function buildScatterRiskChart(data) {
   const pts = data.map((d) => ({
     x: d.coverage_days,
     y: d.lead_time_days,
-    material_id: d.material_id,
-    eng_crit: d.eng_crit,
-    score: d.score,
+    id: d.material_id,
+    name: d.material_name,
+    score: d.criticality_score,
   }));
 
-  const maxVal = Math.max(10, ...data.map((d) => Math.max(d.coverage_days, d.lead_time_days))) || 180;
-  const linePts = [
-    { x: 0, y: 0 },
-    { x: maxVal, y: maxVal },
-  ];
+  const maxVal = Math.max(20, ...data.map((d) => Math.max(d.coverage_days, d.lead_time_days))) || 180;
 
-  const ctx = document.getElementById("scatterRisk").getContext("2d");
+  const ctx = document.getElementById("scatterRiskChart").getContext("2d");
   new Chart(ctx, {
     type: "scatter",
     data: {
       datasets: [
         {
-          label: "Itens Saudáveis",
-          data: pts.filter((p) => p.x >= p.y),
-          backgroundColor: "rgba(16, 185, 129, 0.6)",
-          borderColor: colors.greenBorder,
+          label: "Materiais",
+          data: pts,
+          // Cor vermelha se LT > Cobertura (risco), verde se saudável
+          backgroundColor: pts.map((p) => (p.y > p.x ? "rgba(220, 38, 38, 0.7)" : "rgba(22, 163, 74, 0.6)")),
+          borderColor: pts.map((p) => (p.y > p.x ? colors.red : colors.green)),
           borderWidth: 1,
-        },
-        {
-          label: "Itens em Risco (LT > Cobertura)",
-          data: pts.filter((p) => p.x < p.y),
-          backgroundColor: "rgba(239, 68, 68, 0.6)",
-          borderColor: colors.redBorder,
-          borderWidth: 1,
+          pointRadius: 4,
         },
         {
           label: "Linha de Ruptura (y = x)",
           type: "line",
-          data: linePts,
-          borderColor: "rgba(148, 163, 184, 0.6)",
+          data: [{ x: 0, y: 0 }, { x: maxVal, y: maxVal }],
+          borderColor: "#64748b",
           borderWidth: 1.5,
           borderDash: [5, 5],
           pointRadius: 0,
@@ -408,17 +234,16 @@ function buildScatterRisk(data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, position: "top" },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             label: (ctx) => {
-              if (ctx.datasetIndex === 2) return "Linha de Ruptura (Lead Time = Cobertura)";
+              if (ctx.datasetIndex === 1) return "Linha de Ruptura (Lead Time = Cobertura)";
               const p = ctx.raw;
               return [
-                `Material: ${p.material_id}`,
+                `Material: ${p.id} - ${p.name}`,
                 `Cobertura: ${fmtInt.format(p.x)} dias`,
                 `Lead Time: ${fmtInt.format(p.y)} dias`,
-                `Crit. Eng: ${fmtInt.format(p.eng_crit)}`,
                 `Score: ${fmt.format(p.score)}`,
               ];
             },
@@ -432,7 +257,7 @@ function buildScatterRisk(data) {
           beginAtZero: true,
         },
         y: {
-          title: { display: true, text: "Lead Time de Fornecimento (dias)" },
+          title: { display: true, text: "Lead Time (dias)" },
           grid: { color: colors.grid },
           beginAtZero: true,
         },
@@ -441,34 +266,28 @@ function buildScatterRisk(data) {
   });
 }
 
-// 7) Curva de Pareto do Score Acumulado
-function buildParetoScore(data) {
-  const sorted = [...data].sort((a, b) => b.score - a.score);
-  const total = sorted.reduce((sum, d) => sum + d.score, 0) || 1;
-  let running = 0;
+// 5. Custo de Parada x Score (Scatter/Bubble)
+function buildScatterDowntimeChart(data) {
+  const pts = data.map((d) => ({
+    x: d.criticality_score,
+    y: d.downtime_cost_hour,
+    id: d.material_id,
+    name: d.material_name,
+    class: d.abc_class,
+  }));
 
-  const cumPercentages = sorted.map((d) => {
-    running += d.score;
-    return (running / total) * 100;
-  });
-
-  const labels = sorted.map((_, i) => (i + 1).toString());
-
-  const ctx = document.getElementById("pareto").getContext("2d");
+  const ctx = document.getElementById("scatterDowntimeChart").getContext("2d");
   new Chart(ctx, {
-    type: "line",
+    type: "scatter",
     data: {
-      labels,
       datasets: [
         {
-          label: "Percentual Acumulado do Score de Criticidade",
-          data: cumPercentages,
-          borderColor: colors.blueBorder,
-          backgroundColor: "rgba(56, 189, 248, 0.15)",
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: true,
-          tension: 0.15,
+          label: "Materiais",
+          data: pts,
+          backgroundColor: "rgba(30, 58, 138, 0.6)",
+          borderColor: colors.blueDark,
+          borderWidth: 1,
+          pointRadius: 4,
         },
       ],
     },
@@ -479,20 +298,126 @@ function buildParetoScore(data) {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            title: (ctx) => `Item N° ${ctx[0].label}`,
-            label: (ctx) => `Acumulado: ${fmt.format(ctx.raw)}%`,
+            label: (ctx) => {
+              const p = ctx.raw;
+              return [
+                `Material: ${p.id} - ${p.name}`,
+                `Score Criticidade: ${fmt.format(p.x)}`,
+                `Custo Parada: ${fmtMoney.format(p.y)}/h`,
+                `Classe: ${p.class}`,
+              ];
+            },
           },
         },
       },
       scales: {
         x: {
-          title: { display: true, text: "Itens Ordenados por Criticidade (Rank)" },
-          ticks: { maxTicksLimit: 15 },
-          grid: { display: false },
+          title: { display: true, text: "Score de Criticidade" },
+          grid: { color: colors.grid },
+          beginAtZero: true,
+          max: 1.0,
         },
         y: {
-          title: { display: true, text: "Acumulado (%)" },
-          min: 0,
+          title: { display: true, text: "Custo de Parada (R$/h)" },
+          grid: { color: colors.grid },
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
+// 6. Valor Anual Consumido por Categoria (Bar)
+function buildCategoryCostChart(data) {
+  const costs = {};
+  data.forEach((d) => {
+    costs[d.category] = (costs[d.category] || 0) + d.annual_consumption_value;
+  });
+
+  // Ordenar decrescente
+  const sortedCats = Object.keys(costs).sort((a, b) => costs[b] - costs[a]);
+  const labels = sortedCats;
+  const values = sortedCats.map((c) => costs[c]);
+
+  const ctx = document.getElementById("barCategoryCostChart").getContext("2d");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: colors.grayMedium,
+          borderRadius: 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `Custo Anual: ${fmtMoney.format(ctx.raw)}`,
+          },
+        },
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: colors.grid } },
+      },
+    },
+  });
+}
+
+// 7. Risco de Ruptura por Categoria (Bar)
+function buildRiskCategoryChart(data) {
+  const counts = {};
+  const risks = {};
+  
+  data.forEach((d) => {
+    counts[d.category] = (counts[d.category] || 0) + 1;
+    if (d.lead_time_days > d.coverage_days) {
+      risks[d.category] = (risks[d.category] || 0) + 1;
+    }
+  });
+
+  const labels = Object.keys(counts).sort();
+  const values = labels.map((c) => {
+    const total = counts[c] || 1;
+    const r = risks[c] || 0;
+    return (r / total) * 100;
+  });
+
+  const ctx = document.getElementById("barRiskCategoryChart").getContext("2d");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: colors.red,
+          borderRadius: 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `Taxa de Risco: ${fmt.format(ctx.raw)}%`,
+          },
+        },
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          beginAtZero: true,
           max: 100,
           ticks: { callback: (v) => `${v}%` },
           grid: { color: colors.grid },
@@ -503,122 +428,104 @@ function buildParetoScore(data) {
 }
 
 // -------------------------------------------------------------
-// TABELA E MÈTRICAS
+// TABELA E METRICAS (SOBRIAS, SEM EMOJIS, DESTAQUES DISCRETOS)
 // -------------------------------------------------------------
 
 function buildRiskTable(data) {
   const tbody = document.querySelector("#riskTable tbody");
   tbody.innerHTML = "";
 
-  // Ordena por maior score de risco, depois por score de criticidade
+  // Mostrar os 25 itens mais críticos
   const sorted = [...data]
-    .sort((a, b) => {
-      if (b.risk_score !== a.risk_score) {
-        return b.risk_score - a.risk_score;
-      }
-      return b.score - a.score;
-    })
-    .slice(0, 20);
+    .sort((a, b) => b.criticality_score - a.criticality_score)
+    .slice(0, 25);
 
-  const getBadgeClassAndText = (r) => {
-    if (r.risk_flag && r.suggest_qty > 0) {
-      return { css: "action-buy", text: "Reabastecer Agora" };
-    }
-    if (!r.risk_flag && r.coverage_days > r.lead_time_days * 2) {
-      return { css: "action-reduce", text: "Reduzir Estoque" };
-    }
-    if (r.lead_time_days >= 60) {
-      return { css: "action-review", text: "Rever Lead Time" };
-    }
-    return { css: "action-monitor", text: "Monitorar" };
+  const getActionBadge = (action) => {
+    let css = "action-default";
+    if (action === "Reabastecer agora") css = "action-buy";
+    else if (action === "Revisar estoque mínimo") css = "action-min-stock";
+    else if (action === "Desenvolver fornecedor alternativo") css = "action-supplier";
+    else if (action === "Negociar lead time") css = "action-lead-time";
+    else if (action === "Reduzir excesso de estoque") css = "action-reduce";
+    else if (action === "Monitorar consumo") css = "action-monitor";
+    
+    return `<span class="badge-action ${css}">${action}</span>`;
   };
 
   sorted.forEach((r) => {
-    const badge = getBadgeClassAndText(r);
     const tr = document.createElement("tr");
+    
+    // Destaca Classe A discretamente com classe de estilo dedicada
+    if (r.abc_class === "A") {
+      tr.classList.add("class-a-row");
+    }
+
     tr.innerHTML = `
       <td>${r.material_id}</td>
-      <td>${fmtInt.format(r.eng_crit)}</td>
+      <td>${r.material_name}</td>
+      <td>${r.category}</td>
+      <td>${r.equipment_family}</td>
+      <td>${r.supplier_name}</td>
       <td>${fmtInt.format(r.lead_time_days)}</td>
       <td>${fmtInt.format(r.coverage_days)}</td>
-      <td>${fmt.format(r.score)}</td>
-      <td>${fmt.format(r.risk_score)}</td>
-      <td>${fmtInt.format(r.suggest_qty)}</td>
-      <td><span class="badge-action ${badge.css}">${badge.text}</span></td>
+      <td>${fmtMoney.format(r.downtime_cost_hour)}</td>
+      <td><strong>${fmt.format(r.criticality_score)}</strong></td>
+      <td><strong>${r.abc_class}</strong></td>
+      <td>${getActionBadge(r.recommended_action)}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// Calcula KPIs e atualiza no painel superior
 function buildKpis(data) {
-  const totalMaterials = data.length;
+  const total = data.length;
   
-  const classA = data.filter((d) => d.abc_class === "A");
-  const classACount = classA.length;
-  const classAPct = totalMaterials > 0 ? (classACount / totalMaterials) * 100 : 0;
+  const classACount = data.filter((d) => d.abc_class === "A").length;
+  const classAPct = total > 0 ? (classACount / total) * 100 : 0;
 
-  const sumLeadTime = data.reduce((s, d) => s + d.lead_time_days, 0);
-  const avgLeadTime = totalMaterials > 0 ? sumLeadTime / totalMaterials : 0;
+  // Itens em risco: Lead Time > Cobertura
+  const riskCount = data.filter((d) => d.lead_time_days > d.coverage_days).length;
+  const riskPct = total > 0 ? (riskCount / total) * 100 : 0;
 
-  const totalAnnualCost = data.reduce((s, d) => s + d.annual_value, 0);
-  const maxScore = Math.max(...data.map((d) => d.score), 0);
+  const avgLead = data.reduce((s, d) => s + d.lead_time_days, 0) / (total || 1);
+  const totalAnnualCost = data.reduce((s, d) => s + d.annual_consumption_value, 0);
+  const maxScore = Math.max(...data.map((d) => d.criticality_score), 0);
 
-  // Injetar nos elementos HTML
-  document.getElementById("kpi-total-materials").innerText = fmtInt.format(totalMaterials);
-  document.getElementById("kpi-class-a-count").innerText = fmtInt.format(classACount);
-  document.getElementById("kpi-class-a-pct").innerText = `${fmt.format(classAPct)}% dos itens`;
-  document.getElementById("kpi-avg-lead-time").innerText = `${fmt.format(avgLeadTime)} dias`;
-  document.getElementById("kpi-total-annual-cost").innerText = fmtMoney.format(totalAnnualCost);
+  // Preencher no HTML
+  document.getElementById("kpi-total").innerText = fmtInt.format(total);
+  document.getElementById("kpi-class-a").innerText = fmtInt.format(classACount);
+  document.getElementById("kpi-class-a-pct").innerText = `${fmt.format(classAPct)}% do catálogo`;
+  document.getElementById("kpi-rupture-pct").innerText = `${fmt.format(riskPct)}%`;
+  document.getElementById("kpi-avg-lead").innerText = `${fmt.format(avgLead)} dias`;
+  document.getElementById("kpi-total-value").innerText = fmtMoney.format(totalAnnualCost);
   document.getElementById("kpi-max-score").innerText = fmt.format(maxScore);
 }
 
 // -------------------------------------------------------------
-// BOOTSTRAP / INICIALIZAÇÃO
+// INICIALIZAÇÃO DO CONTEXTO
 // -------------------------------------------------------------
 (async function init() {
   try {
     const rawData = await loadCsvWithFallback(DATA_PATHS);
     if (!rawData || !rawData.length) {
-      throw new Error("Não foi possível carregar os dados ou o arquivo está vazio.");
+      throw new Error("Base de dados indisponível.");
     }
 
-    // Tipagem explícita e limpeza de campos
-    const data = rawData.map((r) => ({
-      material_id: r.material_id ?? "N/A",
-      category: r.category ?? "N/A",
-      supplier: r.supplier ?? "N/A",
-      eng_crit: toNum(r.eng_crit),
-      lead_time_days: toNum(r.lead_time_days),
-      unit_cost: toNum(r.unit_cost),
-      stock_qty: toNum(r.stock_qty),
-      daily_consumption: toNum(r.daily_consumption),
-      coverage_days: toNum(r.coverage_days),
-      annual_value: toNum(r.annual_value),
-      score: toNum(r.score),
-      risk_flag: toNum(r.risk_flag),
-      risk_score: toNum(r.risk_score),
-      abc_class: r.abc_class ?? "C",
-      xyz_class: r.xyz_class ?? "Z",
-      suggest_qty: toNum(r.suggest_qty),
-    }));
-
-    // Executa as renderizações
-    buildKpis(data);
-    buildCritChart(data);
-    buildHistScore(data);
-    buildBubbleLeadCusto(data);
-    buildParetoABC(data);
-    buildBarCritEng(data);
-    buildScatterRisk(data);
-    buildParetoScore(data);
-    buildRiskTable(data);
+    buildKpis(rawData);
+    buildAbcChart(rawData);
+    buildHistChart(rawData);
+    buildTop15Chart(rawData);
+    buildScatterRiskChart(rawData);
+    buildScatterDowntimeChart(rawData);
+    buildCategoryCostChart(rawData);
+    buildRiskCategoryChart(rawData);
+    buildRiskTable(rawData);
 
   } catch (err) {
-    console.error("Erro ao carregar o painel:", err);
+    console.error("Falha ao carregar o painel:", err);
     document.body.insertAdjacentHTML(
       "afterbegin",
-      `<div style="background:#ef4444;color:#fff;padding:12px;text-align:center;font-weight:700">Erro ao carregar painel de controle: ${err.message}</div>`
+      `<div style="background:#dc2626;color:#fff;padding:8px;text-align:center;font-weight:700;font-size:0.85rem">Erro na carga do Painel: ${err.message}</div>`
     );
   }
 })();

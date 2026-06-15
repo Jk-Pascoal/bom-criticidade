@@ -3,272 +3,241 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BOM Criticidade — Priorização Analítica de Materiais Industriais</title>
+  <title>BOM Criticidade — Painel Executivo</title>
   
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Estilos customizados -->
   <link rel="stylesheet" href="styles.css"/>
-  
-  <!-- Bibliotecas externas -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
-  <!-- Banner de Confirmação / Status -->
-  <div id="status-banner" class="banner">BUILD V7 - PORTFOLIO UPGRADE</div>
-
-  <!-- Cabeçalho Principal -->
-  <header class="main-header">
-    <div class="container">
-      <div class="badge-tag">PORTFÓLIO CASE</div>
-      <h1>BOM Criticidade</h1>
-      <p class="subtitle">Priorização Analítica de Materiais Industriais para Otimização de Estoque e Manutenção</p>
+  <!-- Cabeçalho Executivo -->
+  <header class="exec-header">
+    <div class="container header-grid">
+      <div>
+        <h1>BOM Criticidade</h1>
+        <h2>Priorização analítica de materiais industriais</h2>
+        <p class="description">Score interpretável para apoiar decisões de estoque, manutenção e suprimentos.</p>
+      </div>
+      <div class="header-meta">
+        <span class="meta-label">Estudo de Caso</span>
+        <span class="meta-value">MRO - Fertilizantes</span>
+      </div>
     </div>
   </header>
 
   <main class="container">
     
-    <!-- Seção de Contexto de Negócio -->
-    <section class="grid-2 intro-section">
-      <div class="card intro-card">
-        <div class="card-icon">🎯</div>
-        <h3>Problema de Negócio</h3>
-        <p>
-          Em operações industriais, a indisponibilidade de um único item crítico de reposição pode paralisar linhas de produção inteiras, resultando em prejuízos operacionais expressivos. Gestores de manutenção e suprimentos enfrentam o desafio de classificar e priorizar catálogos com milhares de materiais de forma rápida, objetiva e reprodutível, superando processos puramente manuais e subjetivos que geram excesso de estoque classe C ou faltas graves de itens críticos.
-        </p>
-      </div>
-      <div class="card intro-card">
-        <div class="card-icon">⚡</div>
-        <h3>Sumário Executivo</h3>
-        <p>
-          Este projeto desenvolve uma metodologia baseada em dados para calcular um <strong>score interpretável de criticidade</strong>. Ele pondera o impacto operacional técnico (criticidade de engenharia), o tempo de ressuprimento (lead time), o custo unitário e a cobertura atual de estoque. O sistema apoia a tomada de decisão estratégica de supply chain e manutenção, permitindo priorizar esforços de compra e otimizar os níveis de estoque de segurança.
-        </p>
+    <!-- Problema de Negócio (Compacto) -->
+    <section class="problem-section">
+      <div class="problem-card">
+        <strong>Problema de Negócio:</strong> Como priorizar de forma objetiva o abastecimento de milhares de itens sobressalentes, mitigando riscos de paradas não planejadas de produção sem causar excesso de capital de giro imobilizado em estoque?
       </div>
     </section>
 
-    <!-- Cards de Métricas Principais (Calculados dinamicamente via JS) -->
+    <!-- Grid de KPIs -->
     <section class="kpi-grid">
       <div class="kpi-card">
         <span class="kpi-label">Total de Materiais</span>
-        <span id="kpi-total-materials" class="kpi-val">-</span>
-        <span class="kpi-subtext">Itens catalogados na BOM</span>
+        <span id="kpi-total" class="kpi-val">-</span>
+        <span class="kpi-desc">Materiais ativos no catálogo</span>
       </div>
-      <div class="kpi-card warning">
+      <div class="kpi-card">
         <span class="kpi-label">Itens Classe A</span>
-        <span id="kpi-class-a-count" class="kpi-val">-</span>
-        <span id="kpi-class-a-pct" class="kpi-subtext">-</span>
+        <span id="kpi-class-a" class="kpi-val">-</span>
+        <span id="kpi-class-a-pct" class="kpi-desc">-</span>
       </div>
-      <div class="kpi-card info">
+      <div class="kpi-card danger">
+        <span class="kpi-label">Itens em Risco de Ruptura</span>
+        <span id="kpi-rupture-pct" class="kpi-val">-</span>
+        <span class="kpi-desc">Lead time > Cobertura</span>
+      </div>
+      <div class="kpi-card">
         <span class="kpi-label">Lead Time Médio</span>
-        <span id="kpi-avg-lead-time" class="kpi-val">-</span>
-        <span class="kpi-subtext">Dias para recebimento</span>
+        <span id="kpi-avg-lead" class="kpi-val">-</span>
+        <span class="kpi-desc">Dias médios de entrega</span>
       </div>
-      <div class="kpi-card success">
-        <span class="kpi-label">Custo Anual Total Estimado</span>
-        <span id="kpi-total-annual-cost" class="kpi-val">-</span>
-        <span class="kpi-subtext">Consumo anual valorizado</span>
+      <div class="kpi-card">
+        <span class="kpi-label">Valor Anual Consumido</span>
+        <span id="kpi-total-value" class="kpi-val">-</span>
+        <span class="kpi-desc">Consumo anualizado (R$)</span>
       </div>
-      <div class="kpi-card primary">
+      <div class="kpi-card">
         <span class="kpi-label">Maior Score de Criticidade</span>
         <span id="kpi-max-score" class="kpi-val">-</span>
-        <span class="kpi-subtext">Escala padronizada [0, 1]</span>
+        <span class="kpi-desc">Escala padronizada [0, 1]</span>
       </div>
     </section>
 
-    <!-- Visualizações / Gráficos -->
-    <section class="dashboard-charts">
-      
-      <!-- Linha 1: Principal - Top 20 por Score -->
-      <div class="card chart-card full-width">
-        <div class="card-header">
-          <h3>Top 20 Materiais por Score de Criticidade</h3>
-          <span class="card-desc">Itens com maior impacto acumulado com base na fórmula ponderada.</span>
+    <!-- Linha 1 de Gráficos: Visão de Criticidade -->
+    <section class="section-title">
+      <h3>Visão de Criticidade</h3>
+    </section>
+    
+    <section class="charts-grid-3">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h4>Distribuição por Classe A/B/C</h4>
         </div>
         <div class="chart-container">
-          <canvas id="critChart"></canvas>
+          <canvas id="abcChart"></canvas>
         </div>
       </div>
-
-      <!-- Linha 2: Dispersão e Histograma -->
-      <div class="grid-2">
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Distribuição de Score de Criticidade</h3>
-            <span class="card-desc">Frequência de itens por faixa de score, evidenciando a cauda longa de criticidade.</span>
-          </div>
-          <div class="chart-container">
-            <canvas id="histScore"></canvas>
-          </div>
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h4>Histograma do Score</h4>
         </div>
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Relação Lead Time × Custo Unitário</h3>
-            <span class="card-desc">O tamanho da bolha reflete o score de criticidade final de cada item.</span>
-          </div>
-          <div class="chart-container">
-            <canvas id="bubbleLeadCusto"></canvas>
-          </div>
+        <div class="chart-container">
+          <canvas id="histChart"></canvas>
         </div>
       </div>
-
-      <!-- Linha 3: Pareto ABC e Criticidade Engenharia -->
-      <div class="grid-2">
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Pareto ABC por Valor Anual</h3>
-            <span class="card-desc">Materiais que concentram a maior parte do investimento anual em estoque.</span>
-          </div>
-          <div class="chart-container">
-            <canvas id="paretoABC"></canvas>
-          </div>
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h4>Top 15 Materiais Críticos</h4>
         </div>
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Distribuição por Criticidade de Engenharia</h3>
-            <span class="card-desc">Contagem absoluta de itens por nota técnica dada pela equipe de engenharia (1 a 5).</span>
-          </div>
-          <div class="chart-container">
-            <canvas id="barCritEng"></canvas>
-          </div>
+        <div class="chart-container">
+          <canvas id="top15Chart"></canvas>
         </div>
       </div>
-
-      <!-- Linha 4: Risco e Pareto de Criticidade -->
-      <div class="grid-2">
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Risco de Stockout (Lead Time × Cobertura)</h3>
-            <span class="card-desc">Itens à esquerda da linha diagonal (y = x) possuem cobertura menor que o lead time.</span>
-          </div>
-          <div class="chart-container">
-            <canvas id="scatterRisk"></canvas>
-          </div>
-        </div>
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Curva de Pareto de Criticidade</h3>
-            <span class="card-desc">Visualização acumulada do score de criticidade de todos os itens do portfólio.</span>
-          </div>
-          <div class="chart-container">
-            <canvas id="pareto"></canvas>
-          </div>
-        </div>
-      </div>
-
     </section>
 
-    <!-- Tabela de Ação de Riscos -->
+    <!-- Linha 2 de Gráficos: Risco Operacional -->
+    <section class="section-title">
+      <h3>Risco Operacional e Análise de Demanda</h3>
+    </section>
+
+    <section class="charts-grid-2">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h4>Lead Time × Cobertura de Estoque</h4>
+          <span class="chart-desc">Pontos acima da linha tracejada (y = x) representam itens em risco iminente de stockout.</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="scatterRiskChart"></canvas>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h4>Custo de Parada × Score</h4>
+          <span class="chart-desc">Materiais no quadrante superior direito combinam alto custo de parada e alto score de criticidade.</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="scatterDowntimeChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Linha 3 de Gráficos: Categorias e Fornecedores -->
+    <section class="charts-grid-2">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h4>Valor Anual Consumido por Categoria</h4>
+        </div>
+        <div class="chart-container">
+          <canvas id="barCategoryCostChart"></canvas>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h4>Risco de Ruptura por Categoria</h4>
+          <span class="chart-desc">Percentual de itens em risco de desabastecimento (Lead Time > Cobertura) por categoria.</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="barRiskCategoryChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabela Executiva -->
     <section class="card table-card">
-      <div class="card-header">
-        <h3>Top Itens em Risco de Abastecimento</h3>
-        <p class="card-desc">Materiais ordenados pelo score de risco ajustado (Score × Flag de Risco) e ações corretivas recomendadas.</p>
+      <div class="table-header">
+        <h3>Top Materiais Críticos e Ações Recomendadas</h3>
+        <p class="table-desc">Listagem ordenada por score decrescente, destacando classe, cobertura e ações de controle de inventário.</p>
       </div>
       <div class="table-container">
         <table id="riskTable">
           <thead>
             <tr>
-              <th>ID Material</th>
-              <th>Crit. Eng (1-5)</th>
-              <th>Lead Time (dias)</th>
-              <th>Cobertura (dias)</th>
-              <th>Score Criticidade</th>
-              <th>Score Risco</th>
-              <th>Qtd Sugerida</th>
+              <th>Código</th>
+              <th>Descrição do Material</th>
+              <th>Categoria</th>
+              <th>Equipamento</th>
+              <th>Fornecedor</th>
+              <th>Lead Time (d)</th>
+              <th>Cobertura (d)</th>
+              <th>Custo Parada (R$/h)</th>
+              <th>Score</th>
+              <th>Classe</th>
               <th>Ação Recomendada</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Preenchido via JavaScript -->
+            <!-- Preenchido dinamicamente via JS -->
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- Detalhes do Estudo de Caso (Storytelling) -->
-    <section class="case-details">
-      
-      <div class="card case-card">
-        <h3>🧪 Metodologia de Classificação</h3>
-        <p>
-          O pipeline de dados é dividido em quatro etapas reprodutíveis:
-        </p>
-        <ol>
-          <li>
-            <strong>Ingestão e Limpeza:</strong> Mapeamento inteligente de colunas utilizando algoritmos heurísticos no <a href="../src/etl.py">src/etl.py</a> para padronizar nomenclaturas de arquivos de entrada.
-          </li>
-          <li>
-            <strong>Tratamento e Normalização:</strong> Normalização MinMax das variáveis explicativas (criticidade técnica, lead time, custo e cobertura) para que ocupem a mesma escala intervalar [0, 1].
-          </li>
-          <li>
-            <strong>Cálculo do Score de Criticidade:</strong> Formulação ponderada que calcula o risco final de cada item de estoque.
-          </li>
-          <li>
-            <strong>Classificação ABC/XYZ:</strong> Estratificação dos itens de forma financeira (Pareto de consumo anual) e estatística (variabilidade da demanda).
-          </li>
-        </ol>
+    <!-- Metodologia Resumida -->
+    <section class="section-title">
+      <h3>Metodologia de Priorização</h3>
+    </section>
+    
+    <section class="methodology-grid">
+      <div class="card method-card">
+        <h5>1. Dados Sintéticos</h5>
+        <p>Mapeamento de 1000 materiais MRO de planta de fertilizantes, com distribuições plausíveis de lead time, demanda e custos.</p>
       </div>
-
-      <div class="card case-card">
-        <h3>⚖️ Como Interpretar o Score</h3>
-        <p>
-          O <strong>Score de Criticidade</strong> varia de 0.00 (mínima criticidade) a 1.00 (máxima criticidade). A fórmula utiliza os seguintes pesos padrões:
-        </p>
-        <ul>
-          <li><strong>40% - Criticidade de Engenharia (técnica):</strong> Nível de relevância operacional atribuído pela equipe técnica de engenharia.</li>
-          <li><strong>30% - Lead Time de Fornecimento:</strong> Dificuldade logística ou tempo para entrega física do material.</li>
-          <li><strong>20% - Custo Unitário do Material:</strong> Impacto financeiro direto de aquisição.</li>
-          <li><strong>10% - Cobertura de Estoque Inversa (1 - Cobertura):</strong> Penaliza itens com estoques baixos em relação à sua taxa de consumo.</li>
-        </ul>
-        <p><em>Nota: Os pesos são iniciais e baseados em regras de negócio padrão do setor, podendo ser parametrizados em conjunto com especialistas.</em></p>
+      <div class="card method-card">
+        <h5>2. Normalização</h5>
+        <p>Ajuste linear das variáveis explicativas na escala intervalar [0, 1] via MinMax, garantindo neutralidade de grandezas físicas.</p>
       </div>
+      <div class="card method-card">
+        <h5>3. Score Ponderado</h5>
+        <p>Fórmula analítica ponderando: Engenharia (35%), Custo de Parada (25%), Lead Time (20%), Risco Substituição (10%) e Risco Stockout (10%).</p>
+      </div>
+      <div class="card method-card">
+        <h5>4. Classificação ABC</h5>
+        <p>Estratificação objetiva baseada no score calculado: Classe A representa o top 15%, Classe B os próximos 30% e Classe C os demais.</p>
+      </div>
+      <div class="card method-card">
+        <h5>5. Ações de Inventário</h5>
+        <p>Regras lógicas que cruzam cobertura, ponto de pedido mínimo e risco para sugerir planos de ação sob medida e viáveis.</p>
+      </div>
+    </section>
 
-      <div class="card case-card">
-        <h3>💡 Decisões que o Projeto Apoia</h3>
-        <p>
-          A partir deste painel e do score gerado, equipes de planejamento podem tomar decisões de alto valor econômico e operacional:
-        </p>
+    <!-- Limitações e Próximas Fases -->
+    <section class="info-blocks-grid">
+      <div class="card info-card">
+        <h4>Limitações do Modelo</h4>
         <ul>
-          <li><strong>Otimização de Estoque de Segurança:</strong> Dimensionamento dinâmico baseado no desvio padrão da demanda (fórmula XYZ) e tempo de ressuprimento.</li>
-          <li><strong>Priorização em Compras:</strong> Ações preventivas focadas em itens com Flag de Risco ativo (onde a cobertura é menor que o lead time de entrega).</li>
-          <li><strong>Redução de Rupturas:</strong> Detecção preventiva de iminentes paradas não planejadas de produção.</li>
-          <li><strong>Acordos com Fornecedores:</strong> Negociações de Contratos de Fornecimento (MRO) para redução de lead times em materiais prioritários.</li>
-          <li><strong>Redução de Estoque Obsoleto:</strong> Identificação de materiais Classe C com alta cobertura para escoamento ou redução do ritmo de compra.</li>
+          <li><strong>Simulação de Dados:</strong> O projeto utiliza dados sintéticos para simulação MRO e não expõe dados confidenciáveis corporativos.</li>
+          <li><strong>Score Estático:</strong> O score representa pesos de negócio iniciais e deve ser calibrado com especialistas da planta de produção.</li>
+          <li><strong>Suporte à Decisão:</strong> As recomendações servem como ferramenta de triagem e não substituem o parecer técnico da engenharia.</li>
         </ul>
       </div>
-
-      <div class="card case-card">
-        <h3>⚠️ Limitações do Modelo</h3>
+      <div class="card info-card">
+        <h4>Próximas Fases</h4>
         <ul>
-          <li><strong>Dados Sintéticos:</strong> O dataset original foi simulado estatisticamente para representar uma planta de fertilizantes, não expondo dados comerciais ou produtivos reais de nenhuma corporação.</li>
-          <li><strong>Pesos Arbitrários:</strong> A ponderação do score foi desenhada a partir de regras heurísticas de negócio e requer calibração empírica.</li>
-          <li><strong>Falta de Histórico de Falhas:</strong> O modelo não avalia o histórico de quebras de máquinas (MTBF/MTTR) ou a correlação direta de falha do ativo com a peça, dependendo unicamente da nota técnica manual.</li>
+          <li>Integrar dados de falhas de equipamentos (MTBF e MTTR) para modelagem RCM dinâmica.</li>
+          <li>Desenvolver previsões probabilísticas de estoque mínimo com algoritmos preditivos de demanda.</li>
+          <li>Adicionar funcionalidade de ajuste dinâmico de pesos da criticidade diretamente pelo painel.</li>
         </ul>
       </div>
-
-      <div class="card case-card">
-        <h3>🚀 Próximas Fases do Case</h3>
-        <ul>
-          <li>Integrar dados históricos reais de falha de equipamentos para modelar confiabilidade (RCM).</li>
-          <li>Adicionar inteligência preditiva de estoque de segurança com modelos de séries temporais de demanda.</li>
-          <li>Adicionar visualizações em árvore (Treemaps) para navegar pelas subcategorias e fornecedores.</li>
-          <li>Implementar um simulador interativo de pesos do score para testes de sensibilidade em tempo real.</li>
-        </ul>
-      </div>
-
     </section>
 
   </main>
 
-  <!-- Rodapé -->
-  <footer class="main-footer">
+  <!-- Rodapé Executivo -->
+  <footer class="exec-footer">
     <div class="container">
-      <p>Projeto BOM Criticidade — Case de Portfólio Técnico</p>
-      <small>Desenvolvido em Python, Pandas, JavaScript e Chart.js</small>
+      <p>BOM Criticidade — Painel Analítico de Abastecimento Industrial</p>
+      <small>Desenvolvido com Python, Pandas, JavaScript e Chart.js</small>
     </div>
   </footer>
 
