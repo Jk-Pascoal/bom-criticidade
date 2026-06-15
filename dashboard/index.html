@@ -33,10 +33,25 @@
 
   <main class="container">
     
-    <!-- Problema de Negócio (Compacto) -->
+    <!-- Problema de Negócio (Compacto com Galeria) -->
     <section class="problem-section">
-      <div class="problem-card">
-        <strong>Problema de Negócio:</strong> Como priorizar de forma objetiva o abastecimento de milhares de itens sobressalentes, mitigando riscos de paradas não planejadas de produção sem causar excesso de capital de giro imobilizado em estoque?
+      <div class="card problem-card-grid">
+        <div class="problem-text">
+          <strong>Problema de Negócio:</strong> Como priorizar de forma objetiva o abastecimento de milhares de itens sobressalentes, mitigando riscos de paradas não planejadas de produção sem causar excesso de capital de giro imobilizado em estoque?
+          <p style="margin-top: 0.55rem; font-size: 0.75rem; color: var(--text-muted);">
+            O painel cruza o impacto técnico (Engenharia) e financeiro (Custo Parada) com a vulnerabilidade de suprimentos (Lead Time e Cobertura) para gerar recomendações sob medida de compra, monitoramento e controle.
+          </p>
+        </div>
+        <div class="problem-gallery">
+          <div class="gallery-main">
+            <img id="gallery-img" src="./img/mesa.png" alt="Almoxarifado Técnico" />
+          </div>
+          <div class="gallery-thumbs">
+            <img class="active" src="./img/mesa.png" onclick="setGalleryImage(this, './img/mesa.png')" alt="Mesa de Trabalho" />
+            <img src="./img/mesa2.png" onclick="setGalleryImage(this, './img/mesa2.png')" alt="Mesa de Controle" />
+            <img src="./img/mesa-tecnico.png" onclick="setGalleryImage(this, './img/mesa-tecnico.png')" alt="Técnico MRO" />
+          </div>
+        </div>
       </div>
     </section>
 
