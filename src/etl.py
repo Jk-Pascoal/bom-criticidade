@@ -131,6 +131,13 @@ def main(in_path=INPUT_PATH, out_path=OUTPUT_PATH):
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Verifica se o arquivo de entrada existe
+    if not in_path.exists():
+        raise FileNotFoundError(
+            f"Arquivo de entrada nao encontrado em: {in_path.resolve()}\n"
+            "Por favor, execute 'python src/generate_data.py' primeiro para gerar os dados brutos."
+        )
+
     # tenta detectar separador automaticamente
     df = pd.read_csv(in_path, sep=None, engine="python")
 
