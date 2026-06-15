@@ -314,9 +314,20 @@ body {
   text-align: right;
 }
 
-#riskTable th:nth-child(1), #riskTable td:nth-child(1),
+#riskTable th:nth-child(1), #riskTable td:nth-child(1) {
+  text-align: left;
+  white-space: nowrap;
+}
+
 #riskTable th:nth-child(2), #riskTable td:nth-child(2) {
   text-align: left;
+  min-width: 250px;
+}
+
+#riskTable th:nth-child(6), #riskTable td:nth-child(6),
+#riskTable th:nth-child(7), #riskTable td:nth-child(7),
+#riskTable th:nth-child(10), #riskTable td:nth-child(10) {
+  white-space: nowrap;
 }
 
 #riskTable tbody tr {
