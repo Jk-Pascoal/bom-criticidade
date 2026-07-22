@@ -100,7 +100,7 @@ $$\text{Score} = 0.35 \times \text{EngCrit}_{\text{norm}} + 0.25 \times \text{Do
 
 ## Dashboard Executivo
 
-O painel visual contém 7 representações gráficas interativas e sóbrias:
+O painel visual contém 8 representações interativas e sóbrias:
 
 1.  **Distribuição ABC:** Divisão dos materiais pelas classes A, B e C.
 2.  **Histograma de Score:** Quantidade de itens distribuídos por faixas de score [0.0, 1.0].
@@ -116,7 +116,7 @@ O painel visual contém 7 representações gráficas interativas e sóbrias:
 ## Stack Técnica
 
 *   **Linguagem & Processamento:** Python 3.10+ (com Pandas e NumPy).
-*   **Front-end & Visualização:** HTML5, CSS3, JavaScript puro (PapaParse para ingestão de dados locales, Chart.js para renderizações gráficas).
+*   **Front-end & Visualização:** HTML5, CSS3, JavaScript puro (PapaParse para ingestão de dados locais, Chart.js para renderizações gráficas).
 
 ---
 
@@ -144,7 +144,10 @@ BOM-Criticidade/
 │   ├── styles.css
 │   └── script.js
 │
-├── requirements.txt          # Dependências Python mínimas para reprodutibilidade
+├── tests/
+│   └── test_etl.py            # Testes automatizados do pipeline e regras principais
+├── requirements.txt           # Dependências Python de execução
+├── requirements-dev.txt       # Dependências de desenvolvimento e testes
 ├── PORTFOLIO_CASE.md         # Estudo de caso executivo voltado a recrutadores
 ├── DATA_DICTIONARY.md        # Dicionário técnico detalhado das variáveis do modelo
 └── README.md                 # Documento principal do repositório
@@ -190,6 +193,29 @@ Siga as etapas abaixo para rodar o projeto localmente:
     python -m http.server 8000
     ```
     Abra no navegador o endereço: [http://localhost:8000/dashboard/](http://localhost:8000/dashboard/)
+
+---
+
+## Testes Automatizados
+
+A suíte valida o comportamento central do pipeline:
+
+* normalização MinMax quando todos os valores são iguais;
+* geração de scores e riscos dentro do intervalo [0, 1];
+* ordenação decrescente por criticidade;
+* proporções ABC esperadas para uma amostra controlada;
+* geração apenas de ações pertencentes ao conjunto de regras;
+* presença das colunas calculadas;
+* rejeição de arquivos sem colunas obrigatórias.
+
+Para executar:
+
+```bash
+pip install -r requirements-dev.txt
+pytest -q
+```
+
+Os testes utilizam arquivos temporários e não sobrescrevem os dados do projeto.
 
 ---
 
